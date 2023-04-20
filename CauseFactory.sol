@@ -5,6 +5,7 @@ import "./CauseContract.sol";
 
 contract CauseFactory {
 
+    // store all deployed causes
     mapping(string => CauseContract) public deployedCauses;
 
     function createCauseContract(string memory _id) public {
@@ -12,7 +13,12 @@ contract CauseFactory {
         deployedCauses[_id] = newCause;
     }
 
-    function getDeployedCauseFromId(string memory _id) public view returns (CauseContract) {
-        return deployedCauses[_id];
+    function cfRetrieveInfo(string memory _id) 
+        public 
+        view 
+        returns (CauseContract.ContractInfo memory) 
+    {
+        CauseContract cause = deployedCauses[_id];
+        return cause.retrieveInfo();
     }
 }
