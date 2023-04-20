@@ -5,7 +5,7 @@ pragma solidity ^0.8;
 contract CauseContract {
 
     // admin address
-    address payable owner;
+    address payable admin;
 
     // human-readable contract id
     string id;
@@ -25,18 +25,18 @@ contract CauseContract {
     // contract information struct
     struct ContractInfo {
         string id;
-        address owner;
+        address admin;
         Transaction[] incoming;
         Transaction[] outgoing;
     }
 
     constructor(string memory _id) {
-        owner = payable(msg.sender);
+        admin = payable(msg.sender);
         id = _id;
     }
 
     function retrieveInfo() public view returns (ContractInfo memory) {
-        return ContractInfo(id, owner, incoming, outgoing);
+        return ContractInfo(id, admin, incoming, outgoing);
     }
 
     function donate() public payable {
@@ -47,15 +47,19 @@ contract CauseContract {
     function withdraw() public payable onlyAdmin {
         require(address(this).balance > 0, "There is no Ether to withdraw");
         outgoing.push(Transaction(msg.sender, address(this).balance));
-        owner.transfer(address(this).balance);
+        admin.transfer(address(this).balance);
     }
 
     function authenticateAdmin() public view onlyAdmin returns (bool) {
         return true;
     }
 
+    function updateAdmin(address _newAdmin) public onlyAdmin {
+        admin = payable(_newAdmin);
+    }
+
     modifier onlyAdmin() {
-        require(owner == msg.sender, "You are not the owner of this contract");
+        require(admin == msg.sender, "You are not the admin of this contract");
         _;
     }
 }
