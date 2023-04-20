@@ -13,12 +13,7 @@ contract CauseFactory {
         deployedCauses[_id] = newCause;
     }
 
-    function cfRetrieveInfo(string memory _id) 
-        public 
-        view 
-        returns (CauseContract.ContractInfo memory) 
-    {
-        CauseContract cause = deployedCauses[_id];
-        return cause.retrieveInfo();
+    function cfRetrieveInfo(string memory _id) public view returns (CauseContract.ContractInfo memory) {
+        return deployedCauses[_id].retrieveInfo();
     }
 }
