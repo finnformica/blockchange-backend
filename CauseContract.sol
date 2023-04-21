@@ -10,8 +10,8 @@ contract CauseContract {
     // contract address
     address payable contractAddress;
 
-    // charityx wallet address
-    address payable charityx;
+    // blockchange wallet address
+    address payable blockchange;
     uint256 feePercent = 1;
 
     // human-readable contract id
@@ -57,7 +57,7 @@ contract CauseContract {
 
         incoming.push(Transaction(msg.sender, msg.value * (100 - feePercent) / 100, block.timestamp, block.number, tx.gasprice, 2));
 
-        charityx.transfer(msg.value * feePercent / 100);
+        blockchange.transfer(msg.value * feePercent / 100);
     }
 
     function withdraw(uint256 _amount) public payable onlyAdmin {
