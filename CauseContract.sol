@@ -7,6 +7,9 @@ contract CauseContract {
     // admin address
     address payable admin;
 
+    // contract address
+    address payable contractAddress;
+
     // charityx wallet address
     address payable charityx;
     uint256 feePercent = 1;
@@ -36,15 +39,17 @@ contract CauseContract {
         address admin;
         Transaction[] incoming;
         Transaction[] outgoing;
+        address contractAddress;
     }
 
     constructor(string memory _id) {
         admin = payable(msg.sender);
+        contractAddress = payable(address(this));
         id = _id;
     }
 
     function retrieveInfo() public view returns (ContractInfo memory) {
-        return ContractInfo(id, admin, incoming, outgoing);
+        return ContractInfo(id, admin, incoming, outgoing, contractAddress);
     }
 
     function donate() public payable {
