@@ -61,7 +61,14 @@ contract CauseContract {
     function donate() public payable {
         require(msg.value > 0, "You must send some Ether");
 
-        incoming.push(Transaction(msg.sender, msg.value * ((100 - feePercent) / 100), block.timestamp, block.number, tx.gasprice, msg.value * (feePercent / 100) ));
+        //incoming.push(Transaction(msg.sender, msg.value * ((100 - feePercent) / 100), block.timestamp, block.number, tx.gasprice, msg.value * (feePercent / 100) ));
+
+
+        //uint256 donationAfterFee = msg.value * ((100 - feePercent) / 100);
+        //uint256 transactionFee = msg.value - donationAfterFee;
+        incoming.push(Transaction(msg.sender, msg.value, block.timestamp, block.number, tx.gasprice, 0));
+        //incoming.push(Transaction(msg.sender, amount, block.timestamp, block.number, tx.gasprice, msg.value - amount));
+        
 
         // update donor proportion
         donorTotals[msg.sender] += msg.value;
