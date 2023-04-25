@@ -41,7 +41,7 @@ contract CauseContract {
         address contractAddress;
     }
 
-    uint256 constant BASIS_POINTS = 5; // move the basic points to its own variable
+    uint256 constant BASIS_POINTS = 50; // move the basic points to its own variable
     uint256 constant DECIMALS = 1e18; // change the amount to amount * 1e18 in function (withdraw), unit: Wei-> ETH
 
     constructor(string memory _id) {
