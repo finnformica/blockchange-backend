@@ -12,7 +12,6 @@ contract CauseContract {
 
     // blockchange wallet address
     address payable blockchange;
-    // uint256 feePercent = 1;
 
     // human-readable contract id
     string id;
