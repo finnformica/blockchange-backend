@@ -54,12 +54,12 @@ contract CauseContract {
 
 
     function donate() public payable {
-    require(msg.value > 0, "You must send some Ether");
+        require(msg.value > 0, "You must send some Ether");
 
-    uint256 transactionFee = (msg.value * tx.gasprice * 5) / 10000; // Transaction fee of 5bps
-    incoming.push(Transaction(msg.sender, msg.value - transactionFee, block.timestamp, block.number, tx.gasprice, transactionFee));
+        uint256 transactionFee = (msg.value * tx.gasprice * 5) / 10000; // Transaction fee of 5bps
+        incoming.push(Transaction(msg.sender, msg.value - transactionFee, block.timestamp, block.number, tx.gasprice, transactionFee));
 
-    blockchange.transfer(transactionFee);
+        blockchange.transfer(transactionFee);
 }
 
     function withdraw(uint256 _amount) public payable onlyAdmin {
