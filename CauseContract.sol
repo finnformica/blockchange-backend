@@ -42,7 +42,6 @@ contract CauseContract {
     }
 
     uint256 constant BASIS_POINTS = 50; // move the basic points to its own variable
-    uint256 constant DECIMALS = 1e18; // change the amount to amount * 1e18 in function (withdraw), unit: Wei-> ETH
 
     constructor(string memory _id) {
         admin = payable(msg.sender);
@@ -54,19 +53,21 @@ contract CauseContract {
         return ContractInfo(id, admin, incoming, outgoing, contractAddress);
     }
 
-
-    function donate() public payable {
+    uint256 public transactionFee;
+    
+    function donate() public payable returns (uint256) {
         require(msg.value > 0, "You must send some Ether");
 
-        uint256 transactionFee = (msg.value * tx.gasprice * BASIS_POINTS) / 10000; // Transaction fee of 5bps (by default)
+        transactionFee = (msg.value * tx.gasprice * BASIS_POINTS) / 10000; // Transaction fee of 50bps (by default)
         incoming.push(Transaction(msg.sender, msg.value - transactionFee, block.timestamp, block.number, tx.gasprice, transactionFee));
 
         blockchange.transfer(transactionFee);
-}
-
+        return transactionFee; // Fee in Wei
+    }
+    
     function withdraw(uint256 _amount) public payable onlyAdmin {
         require(address(this).balance > _amount, "There is no Ether to withdraw");
-        uint256 amount = _amount * DECIMALS;
+        uint256 amount = _amount * 1 ether;
         outgoing.push(Transaction(msg.sender, amount, block.timestamp, block.number, tx.gasprice, 2));
 
         // use the transfer method to transfer the amount to the admin's address
