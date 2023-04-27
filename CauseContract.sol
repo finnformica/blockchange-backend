@@ -9,9 +9,9 @@ contract CauseContract {
     // contract address
     address payable contractAddress;
 
-    // blcokChange wallet address
+    // blockChange wallet address
     address payable blockChange;
-    uint256 feePercent = 1;
+    
 
     // human-readable contract id
     string id;
@@ -26,6 +26,15 @@ contract CauseContract {
         uint256 transactionFee;
     }
 
+    // donation total tracker
+    uint256 causeTotal;
+
+    struct causeStats{
+        uint256 causeTotal;
+    }
+    
+    
+
     // incoming donations
     Transaction[] incoming;
 
@@ -34,6 +43,7 @@ contract CauseContract {
 
     // donor proportion tracking
     mapping(address => uint256) public donorTotals;
+
 
     // endCause flag
     bool public endCause = false;
@@ -77,35 +87,24 @@ contract CauseContract {
         uint256 gasPrice = tx.gasprice;
         uint256 gasFee = gasUsed * gasPrice;
 
-        incoming.push(Transaction(msg.sender, msg.value - transactionFee, block.timestamp, block.number, gasFee, transactionFee));
-
-                // update donor proportion
+         // update donor proportion
         donorTotals[msg.sender] += msg.value;
 
-        blockChange.transfer(transactionFee);
+        //update causeTotal
+        causeTotal += msg.value;
+        causeStats(causeTotal);
+
+        incoming.push(Transaction(msg.sender, msg.value - transactionFee, block.timestamp, block.number, gasFee, transactionFee));       
 
         return true;
 }
 
 
+    function retrieveCauseTotal() public view returns (causeStats memory){
+        return causeStats(causeTotal);
 
+    }
 
-
-
-    // function donate() public payable {
-    //     require(msg.value > 0, "You must send some Ether");
-
-    //     transactionFee = (msg.value*BASIS_POINTS) / 1000; // Transaction fee of 5bps (by default)
-    //     incoming.push(Transaction(msg.sender, msg.value - transactionFee, block.timestamp, block.number, tx.gasprice, transactionFee));
-
-    //     blockChange.transfer(transactionFee);
-
-    //     // update donor proportion
-    //     donorTotals[msg.sender] += msg.value;
-
-    //     blockChange.transfer(transactionFee);
-
-    // }
 
     function withdraw(uint256 _amount) public payable onlyAdmin {
         require(address(this).balance > _amount, "Insufficient funds for withdrawal");
