@@ -134,6 +134,10 @@ contract CauseContract {
         endCause = true;
     }
 
+    function resumeCauseFunction() public onlyAdmin {
+        endCause = false;
+    }
+
     mapping(address => bool) public addressDonated;
 
     function distributeFunds() public onlyAdmin {
