@@ -12,7 +12,6 @@ contract CauseContract {
 
     // blockchange wallet address
     address payable blockchange;
-    uint256 feePercent = 1;
 
     // human-readable contract id
     string id;
@@ -42,6 +41,8 @@ contract CauseContract {
         address contractAddress;
     }
 
+    uint256 constant BASIS_POINTS = 50; // move the basic points to its own variable
+
     constructor(string memory _id) {
         admin = payable(msg.sender);
         contractAddress = payable(address(this));
@@ -52,20 +53,25 @@ contract CauseContract {
         return ContractInfo(id, admin, incoming, outgoing, contractAddress);
     }
 
-    function donate() public payable {
+    uint256 public transactionFee;
+    
+    function donate() public payable returns (uint256) {
         require(msg.value > 0, "You must send some Ether");
 
-        incoming.push(Transaction(msg.sender, msg.value * (100 - feePercent) / 100, block.timestamp, block.number, tx.gasprice, 2));
+        transactionFee = (msg.value * tx.gasprice * BASIS_POINTS) / 10000; // Transaction fee of 50bps (by default)
+        incoming.push(Transaction(msg.sender, msg.value - transactionFee, block.timestamp, block.number, tx.gasprice, transactionFee));
 
-        blockchange.transfer(msg.value * feePercent / 100);
+        blockchange.transfer(transactionFee);
+        return transactionFee; // Fee in Wei
     }
-
+    
     function withdraw(uint256 _amount) public payable onlyAdmin {
         require(address(this).balance > _amount, "There is no Ether to withdraw");
-        outgoing.push(Transaction(msg.sender, _amount, block.timestamp, block.number, tx.gasprice, 2));
+        uint256 amount = _amount * 1 ether;
+        outgoing.push(Transaction(msg.sender, amount, block.timestamp, block.number, tx.gasprice, 2));
 
         // use the transfer method to transfer the amount to the admin's address
-        (bool success, ) = admin.call{value: _amount}("");
+        (bool success, ) = admin.call{value: amount}("");
         require(success, "Withdrawal failed");
     }
 
