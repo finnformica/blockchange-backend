@@ -75,6 +75,7 @@ contract CauseContract {
 
     function donate() public payable returns (bool) {
         require(msg.value > 0, "You must send some Ether");
+        require(endCause == false, "This cause has ended, your funds have been returned");
 
         uint256 gasStart = gasleft();
 
