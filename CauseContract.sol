@@ -9,8 +9,8 @@ contract CauseContract {
     // contract address
     address payable contractAddress;
 
-    // charityx wallet address
-    address payable charityx;
+    // blcokChange wallet address
+    address payable blockChange;
     uint256 feePercent = 1;
 
     // human-readable contract id
@@ -48,6 +48,8 @@ contract CauseContract {
         bool endCause;
     }
 
+    uint256 constant BASIS_POINTS = 5; // move the basic points to its own variable
+
     constructor(string memory _id) {
         admin = payable(msg.sender);
         contractAddress = payable(address(this));
@@ -58,32 +60,68 @@ contract CauseContract {
         return ContractInfo(id, admin, incoming, outgoing, contractAddress, endCause);
     }
 
-    function donate() public payable {
+
+    uint256 transactionFee;
+
+    function donate() public payable returns (bool) {
         require(msg.value > 0, "You must send some Ether");
 
-        //incoming.push(Transaction(msg.sender, msg.value * ((100 - feePercent) / 100), block.timestamp, block.number, tx.gasprice, msg.value * (feePercent / 100) ));
+        uint256 gasStart = gasleft();
 
-
-        //uint256 donationAfterFee = msg.value * ((100 - feePercent) / 100);
-        //uint256 transactionFee = msg.value - donationAfterFee;
-        incoming.push(Transaction(msg.sender, msg.value, block.timestamp, block.number, tx.gasprice, 0));
-        //incoming.push(Transaction(msg.sender, amount, block.timestamp, block.number, tx.gasprice, msg.value - amount));
+        transactionFee = (msg.value*BASIS_POINTS) / 1000; // Transaction fee of 5bps (by default)
         
 
-        // update donor proportion
+        blockChange.transfer(transactionFee);
+
+        uint256 gasUsed = gasStart - gasleft();
+        uint256 gasPrice = tx.gasprice;
+        uint256 gasFee = gasUsed * gasPrice;
+
+        incoming.push(Transaction(msg.sender, msg.value - transactionFee, block.timestamp, block.number, gasFee, transactionFee));
+
+                // update donor proportion
         donorTotals[msg.sender] += msg.value;
 
-        charityx.transfer(msg.value * (feePercent / 100));
+        blockChange.transfer(transactionFee);
 
-    }
+        return true;
+}
+
+
+
+
+
+
+    // function donate() public payable {
+    //     require(msg.value > 0, "You must send some Ether");
+
+    //     transactionFee = (msg.value*BASIS_POINTS) / 1000; // Transaction fee of 5bps (by default)
+    //     incoming.push(Transaction(msg.sender, msg.value - transactionFee, block.timestamp, block.number, tx.gasprice, transactionFee));
+
+    //     blockChange.transfer(transactionFee);
+
+    //     // update donor proportion
+    //     donorTotals[msg.sender] += msg.value;
+
+    //     blockChange.transfer(transactionFee);
+
+    // }
 
     function withdraw(uint256 _amount) public payable onlyAdmin {
-        require(address(this).balance < _amount, "Insufficient funds for withdrawal");
-        outgoing.push(Transaction(msg.sender, _amount, block.timestamp, block.number, tx.gasprice, 0));
+        require(address(this).balance > _amount, "Insufficient funds for withdrawal");
+        
+        uint256 gasStart = gasleft();
+        
 
         // use the transfer method to transfer the amount to the admin's address
         (bool success, ) = admin.call{value: _amount}("");
         require(success, "Withdrawal failed");
+
+        uint256 gasUsed = gasStart - gasleft();
+        uint256 gasPrice = tx.gasprice;
+        uint256 gasFee = gasUsed * gasPrice;
+
+        outgoing.push(Transaction(msg.sender, _amount, block.timestamp, block.number, gasFee, 0));
     }
 
     function authenticateAdmin() public view onlyAdmin returns (bool) {
