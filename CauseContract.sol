@@ -16,6 +16,9 @@ contract CauseContract {
     // human-readable contract id
     string id;
 
+    // transaction fee for donations
+    uint256 transactionFee;
+
     // transaction struct
     struct Transaction {
         address sender;
@@ -34,7 +37,6 @@ contract CauseContract {
     }
     
     
-
     // incoming donations
     Transaction[] incoming;
 
@@ -71,8 +73,6 @@ contract CauseContract {
     }
 
 
-    uint256 transactionFee;
-
     function donate() public payable returns (bool) {
         require(msg.value > 0, "You must send some Ether");
 
@@ -104,7 +104,6 @@ contract CauseContract {
         return causeStats(causeTotal);
 
     }
-
 
     function withdraw(uint256 _amount) public payable onlyAdmin {
         require(address(this).balance > _amount, "Insufficient funds for withdrawal");
@@ -144,8 +143,6 @@ contract CauseContract {
         uint256 totalDonation = address(this).balance;
 
         // keep track of whether an address has already donated or not
-        
-
         for (uint256 i = 0; i < incoming.length; i++) {
             address sender = incoming[i].sender;
 
@@ -164,7 +161,7 @@ contract CauseContract {
     }
 }
 
-
+    //modifier to ensure only admin is able to call function
     modifier onlyAdmin() {
         require(admin == msg.sender, "You are not the admin of this contract");
         _;
