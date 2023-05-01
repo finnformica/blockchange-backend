@@ -16,6 +16,18 @@ contract CauseContract {
     // human-readable contract id
     string id;
 
+    //Charity cause description
+    string causeDescription;
+    
+    //Website URL
+    string websiteURL;
+
+    //Thumbnail
+    string thumbnail;
+
+    //Charity contact email address
+    string emailAddress;
+
     // transaction fee for donations
     uint256 transactionFee;
 
@@ -28,14 +40,6 @@ contract CauseContract {
         uint256 gasUsed;
         uint256 transactionFee;
     }
-
-    // donation total tracker
-    uint256 causeTotal;
-
-    struct causeStats{
-        uint256 causeTotal;
-    }
-    
     
     // incoming donations
     Transaction[] incoming;
@@ -47,8 +51,8 @@ contract CauseContract {
     mapping(address => uint256) public donorTotals;
 
 
-    // endCause flag
-    bool public endCause = false;
+    // endCause flag -> 1 = False, 2 = True
+    uint256 public endCause = 1;
 
     // contract information struct
     struct ContractInfo {
@@ -57,8 +61,18 @@ contract CauseContract {
         Transaction[] incoming;
         Transaction[] outgoing;
         address contractAddress;
-        bool endCause;
+        uint256 causeTotal;
+        uint256 endCause;
+        string emailAddress;
+        string causeDescription;
+        string websiteURL;
+        string thumbnail;
+
     }
+
+    // donation total tracker
+    uint256 causeTotal;
+
 
     uint256 constant BASIS_POINTS = 5; // move the basic points to its own variable
 
@@ -69,13 +83,13 @@ contract CauseContract {
     }
 
     function retrieveInfo() public view returns (ContractInfo memory) {
-        return ContractInfo(id, admin, incoming, outgoing, contractAddress, endCause);
+        return ContractInfo(id, admin, incoming, outgoing, contractAddress, causeTotal, endCause, emailAddress, causeDescription, websiteURL, thumbnail);
     }
 
 
     function donate() public payable returns (bool) {
         require(msg.value > 0, "You must send some Ether");
-        require(endCause == false, "This cause has ended, your funds have been returned");
+        require(endCause == 1, "This cause has ended, your funds have been returned");
 
         uint256 gasStart = gasleft();
 
@@ -92,8 +106,8 @@ contract CauseContract {
         donorTotals[msg.sender] += msg.value;
 
         //update causeTotal
-        causeTotal += msg.value;
-        causeStats(causeTotal);
+        causeTotal += (msg.value - transactionFee);
+        // causeStats(causeTotal);
 
         incoming.push(Transaction(msg.sender, msg.value - transactionFee, block.timestamp, block.number, gasFee, transactionFee));       
 
@@ -101,10 +115,6 @@ contract CauseContract {
 }
 
 
-    function retrieveCauseTotal() public view returns (causeStats memory){
-        return causeStats(causeTotal);
-
-    }
 
     function withdraw(uint256 _amount) public payable onlyAdmin {
         require(address(this).balance > _amount, "Insufficient funds for withdrawal");
@@ -131,18 +141,19 @@ contract CauseContract {
         admin = payable(_newAdmin);
     }
 
-    function endCauseFunction() public onlyAdmin {
-        endCause = true;
-    }
-
-    function resumeCauseFunction() public onlyAdmin {
-        endCause = false;
+    function toggleCauseState() public onlyAdmin {
+        if (endCause == 1) {
+            endCause = 2;
+        }
+        else if (endCause == 2){
+            endCause= 1;
+        }
     }
 
     mapping(address => bool) public addressDonated;
 
     function distributeFunds() public onlyAdmin {
-        require(endCause == true, "The cause has not ended yet");
+        require(endCause == 2, "The cause has not ended yet");
         require(address(this).balance > 0, "The contract balance is zero");
 
         uint256 totalDonation = address(this).balance;
