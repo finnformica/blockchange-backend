@@ -90,7 +90,7 @@ contract CauseContract {
     }
 
 
-    function donate() public payable returns (bool) {
+    function donate() public payable{
         require(msg.value > 0, "You must send some Ether");
         require(endCause == 1, "This cause has ended, your funds have been returned");
 
