@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8;
 
-
 contract CauseContract {
 
     // admin address
@@ -10,11 +9,28 @@ contract CauseContract {
     // contract address
     address payable contractAddress;
 
-    // blockchange wallet address
-    address payable blockchange;
+
+    // blockChange wallet address
+    address payable blockChange;
+    
 
     // human-readable contract id
     string id;
+
+    //Charity cause description
+    string causeDescription;
+    
+    //Website URL
+    string websiteURL;
+
+    //ThumbnailURL
+    string thumbnailURL;
+
+    //Charity contact email address
+    string emailAddress;
+
+    // transaction fee for donations
+    uint256 transactionFee;
 
     // transaction struct
     struct Transaction {
@@ -25,12 +41,19 @@ contract CauseContract {
         uint256 gasUsed;
         uint256 transactionFee;
     }
-
+    
     // incoming donations
     Transaction[] incoming;
 
     // outgoing funding
     Transaction[] outgoing;
+
+    // donor proportion tracking
+    mapping(address => uint256) public donorTotals;
+
+
+    // endCause flag -> 1 = False, 2 = True
+    uint256 public endCause = 1;
 
     // contract information struct
     struct ContractInfo {
@@ -39,9 +62,22 @@ contract CauseContract {
         Transaction[] incoming;
         Transaction[] outgoing;
         address contractAddress;
+        uint256 causeTotal;
+        uint256 endCause;
+        string emailAddress;
+        string causeDescription;
+        string websiteURL;
+        string thumbnailURL;
+
     }
 
-    uint256 constant BASIS_POINTS = 50; // move the basic points to its own variable
+
+    // donation total tracker
+    uint256 causeTotal;
+
+
+    uint256 constant BASIS_POINTS = 5; // move the basic points to its own variable
+
 
     constructor(string memory _id) {
         admin = payable(msg.sender);
@@ -50,29 +86,55 @@ contract CauseContract {
     }
 
     function retrieveInfo() public view returns (ContractInfo memory) {
-        return ContractInfo(id, admin, incoming, outgoing, contractAddress);
+        return ContractInfo(id, admin, incoming, outgoing, contractAddress, causeTotal, endCause, emailAddress, causeDescription, websiteURL, thumbnailURL);
     }
 
-    uint256 public transactionFee;
-    
-    function donate() public payable returns (uint256) {
+
+    function donate() public payable returns (bool) {
         require(msg.value > 0, "You must send some Ether");
+        require(endCause == 1, "This cause has ended, your funds have been returned");
 
-        transactionFee = (msg.value * tx.gasprice * BASIS_POINTS) / 10000; // Transaction fee of 50bps (by default)
-        incoming.push(Transaction(msg.sender, msg.value - transactionFee, block.timestamp, block.number, tx.gasprice, transactionFee));
+        uint256 gasStart = gasleft();
 
-        blockchange.transfer(transactionFee);
-        return transactionFee; // Fee in Wei
-    }
-    
+        transactionFee = (msg.value*BASIS_POINTS) / 1000; // Transaction fee of 5bps (by default)
+        
+
+        (bool success, ) = blockChange.call{value: transactionFee}("");
+        require(success, "Transfer failed.");
+
+        uint256 gasUsed = gasStart - gasleft();
+        uint256 gasPrice = tx.gasprice;
+        uint256 gasFee = gasUsed * gasPrice;
+
+         // update donor proportion
+        donorTotals[msg.sender] += msg.value;
+
+        //update causeTotal
+        causeTotal += (msg.value - transactionFee);
+        // causeStats(causeTotal);
+
+        incoming.push(Transaction(msg.sender, msg.value - transactionFee, block.timestamp, block.number, gasFee, transactionFee));       
+
+        
+}
+
+
     function withdraw(uint256 _amount) public payable onlyAdmin {
-        require(address(this).balance > _amount, "There is no Ether to withdraw");
-        uint256 amount = _amount * 1 ether;
-        outgoing.push(Transaction(msg.sender, amount, block.timestamp, block.number, tx.gasprice, 2));
+        require(address(this).balance > _amount, "Insufficient funds for withdrawal");
+        
+        uint256 gasStart = gasleft();
+        
+
 
         // use the transfer method to transfer the amount to the admin's address
-        (bool success, ) = admin.call{value: amount}("");
+        (bool success, ) = admin.call{value: _amount}("");
         require(success, "Withdrawal failed");
+
+        uint256 gasUsed = gasStart - gasleft();
+        uint256 gasPrice = tx.gasprice;
+        uint256 gasFee = gasUsed * gasPrice;
+
+        outgoing.push(Transaction(msg.sender, _amount, block.timestamp, block.number, gasFee, 0));
     }
 
     function authenticateAdmin() public view onlyAdmin returns (bool) {
@@ -83,6 +145,43 @@ contract CauseContract {
         admin = payable(_newAdmin);
     }
 
+    function toggleCauseState() public onlyAdmin {
+        if (endCause == 1) {
+            endCause = 2;
+        }
+        else if (endCause == 2){
+            endCause= 1;
+        }
+    }
+
+    mapping(address => bool) public addressDonated;
+
+    function distributeFunds() public onlyAdmin {
+        require(endCause == 2, "The cause has not ended yet");
+        require(address(this).balance > 0, "The contract balance is zero");
+
+        uint256 totalDonation = address(this).balance;
+
+        // keep track of whether an address has already donated or not
+        for (uint256 i = 0; i < incoming.length; i++) {
+            address sender = incoming[i].sender;
+
+            // check if the address has already donated
+            if (!addressDonated[sender]) {
+                uint256 proportion = donorTotals[sender] * 100 / totalDonation;
+                uint256 donation = totalDonation * proportion / 100;
+                if (donation > 0) {
+                    (bool success, ) = sender.call{value: donation}("");
+                    require(success, "Failed to distribute funds to donor");
+                }
+
+                // mark the address as having donated
+                addressDonated[sender] = true;
+        }
+    }
+}
+
+    //modifier to ensure only admin is able to call function
     modifier onlyAdmin() {
         require(admin == msg.sender, "You are not the admin of this contract");
         _;
