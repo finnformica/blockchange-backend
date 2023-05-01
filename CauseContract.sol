@@ -9,6 +9,7 @@ contract CauseContract {
     // contract address
     address payable contractAddress;
 
+
     // blockChange wallet address
     address payable blockChange;
     
@@ -70,11 +71,13 @@ contract CauseContract {
 
     }
 
+
     // donation total tracker
     uint256 causeTotal;
 
 
     uint256 constant BASIS_POINTS = 5; // move the basic points to its own variable
+
 
     constructor(string memory _id) {
         admin = payable(msg.sender);
@@ -87,7 +90,7 @@ contract CauseContract {
     }
 
 
-    function donate() public payable  {
+    function donate() public payable returns (bool) {
         require(msg.value > 0, "You must send some Ether");
         require(endCause == 1, "This cause has ended, your funds have been returned");
 
@@ -116,12 +119,12 @@ contract CauseContract {
 }
 
 
-
     function withdraw(uint256 _amount) public payable onlyAdmin {
         require(address(this).balance > _amount, "Insufficient funds for withdrawal");
         
         uint256 gasStart = gasleft();
         
+
 
         // use the transfer method to transfer the amount to the admin's address
         (bool success, ) = admin.call{value: _amount}("");
