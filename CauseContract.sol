@@ -22,8 +22,8 @@ contract CauseContract {
     //Website URL
     string websiteURL;
 
-    //Thumbnail
-    string thumbnail;
+    //ThumbnailURL
+    string thumbnailURL;
 
     //Charity contact email address
     string emailAddress;
@@ -66,7 +66,7 @@ contract CauseContract {
         string emailAddress;
         string causeDescription;
         string websiteURL;
-        string thumbnail;
+        string thumbnailURL;
 
     }
 
@@ -83,11 +83,11 @@ contract CauseContract {
     }
 
     function retrieveInfo() public view returns (ContractInfo memory) {
-        return ContractInfo(id, admin, incoming, outgoing, contractAddress, causeTotal, endCause, emailAddress, causeDescription, websiteURL, thumbnail);
+        return ContractInfo(id, admin, incoming, outgoing, contractAddress, causeTotal, endCause, emailAddress, causeDescription, websiteURL, thumbnailURL);
     }
 
 
-    function donate() public payable returns (bool) {
+    function donate() public payable  {
         require(msg.value > 0, "You must send some Ether");
         require(endCause == 1, "This cause has ended, your funds have been returned");
 
@@ -96,7 +96,8 @@ contract CauseContract {
         transactionFee = (msg.value*BASIS_POINTS) / 1000; // Transaction fee of 5bps (by default)
         
 
-        blockChange.transfer(transactionFee);
+        (bool success, ) = blockChange.call{value: transactionFee}("");
+        require(success, "Transfer failed.");
 
         uint256 gasUsed = gasStart - gasleft();
         uint256 gasPrice = tx.gasprice;
@@ -111,7 +112,7 @@ contract CauseContract {
 
         incoming.push(Transaction(msg.sender, msg.value - transactionFee, block.timestamp, block.number, gasFee, transactionFee));       
 
-        return true;
+        
 }
 
 
