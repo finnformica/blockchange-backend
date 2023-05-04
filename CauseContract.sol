@@ -68,17 +68,17 @@ contract CauseContract {
 
     uint256 constant BASIS_POINTS = 50;
 
-    constructor(string memory _id, string memory _name, string memory _causeDescription, string memory _websiteURL, string memory _thumbnailURL, string memory _emailAddress) {
+    constructor(string memory _id, string memory _name, string memory _description, string memory _websiteURL, string memory _thumbnailURL, string memory _email) {
         admin = payable(msg.sender);
         contractAddress = payable(address(this));
         
         // initialise cause inputs
         id = _id;
         name = _name;
-        description = _causeDescription;
+        description = _description;
         websiteURL = _websiteURL;
         thumbnailURL = _thumbnailURL;
-        email = _emailAddress;
+        email = _email;
     }
 
     function retrieveInfo() public view returns (ContractInfo memory) {
