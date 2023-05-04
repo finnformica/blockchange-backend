@@ -13,21 +13,13 @@ contract CauseContract {
     // blockChange wallet address
     address payable blockChange;
     
-
-    // human-readable contract id
+    // cause inputs
     string id;
-
-    //Charity cause description
-    string causeDescription;
-    
-    //Website URL
+    string name;
+    string description;
     string websiteURL;
-
-    //ThumbnailURL
     string thumbnailURL;
-
-    //Charity contact email address
-    string emailAddress;
+    string email;
 
     // transaction fee for donations
     uint256 transactionFee;
@@ -58,6 +50,7 @@ contract CauseContract {
     // contract information struct
     struct ContractInfo {
         string id;
+        string name;
         address admin;
         Transaction[] incoming;
         Transaction[] outgoing;
@@ -79,14 +72,31 @@ contract CauseContract {
     uint256 constant BASIS_POINTS = 5; // move the basic points to its own variable
 
 
-    constructor(string memory _id) {
+    constructor(string memory _id, string memory _name, string memory _causeDescription, string memory _websiteURL, string memory _thumbnailURL, string memory _emailAddress) {
         admin = payable(msg.sender);
         contractAddress = payable(address(this));
+        
+        // initialise cause inputs
         id = _id;
+        name = _name;
+        description = _causeDescription;
+        websiteURL = _websiteURL;
+        thumbnailURL = _thumbnailURL;
+        email = _emailAddress;
     }
 
     function retrieveInfo() public view returns (ContractInfo memory) {
-        return ContractInfo(id, admin, incoming, outgoing, contractAddress, causeTotal, endCause, emailAddress, causeDescription, websiteURL, thumbnailURL);
+        return ContractInfo(
+            id, 
+            name, 
+            admin, 
+            incoming, 
+            outgoing, 
+            contractAddress, 
+            causeTotal, 
+            endCause, 
+            email, 
+            description, websiteURL, thumbnailURL);
     }
 
 
