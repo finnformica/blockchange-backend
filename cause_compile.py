@@ -1,5 +1,5 @@
 from web3 import Web3
-from solcx import compile_files, compile_source
+from solcx import compile_files
 import json
 import os
 
@@ -23,7 +23,7 @@ bin = list(compile.values())[0]["bin"]
 ContractFactory = w3.eth.contract(abi=abi, bytecode=bin)
 
 
-#compile cause contract
+# compile cause contract
 contract_name = "CauseContract.sol"
 compile = compile_files([contract_name], output_values=["abi", "bin"])
 abi = list(compile.values())[0]["abi"]
@@ -32,19 +32,17 @@ bin = list(compile.values())[0]["bin"]
 CauseContract = w3.eth.contract(abi=abi, bytecode=bin)
 
 
-#count how many parameters are required to deploy cause contract from contract factory
+# count how many parameters are required to deploy cause contract from contract factory
 constructor_abi = next(item for item in abi if item["type"] == "constructor")
 num_args = len(constructor_abi["inputs"])
 
 # Create a list of empty strings with the same length as the number of arguments
-empty_args = [''] * num_args
+empty_args = [""] * num_args
 
 # Deploy the ContractFactory with the empty arguments
 tx_hash = ContractFactory.constructor(*empty_args).transact()
 
-
 # deploy contract
-#tx_hash = ContractFactory.constructor().transact()
 tx_receipt = w3.eth.wait_for_transaction_receipt(tx_hash)
 deployed_contract = w3.eth.contract(address=tx_receipt.contractAddress, abi=abi)
 
