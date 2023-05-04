@@ -22,12 +22,8 @@ bin = list(compile.values())[0]["bin"]
 # instantiate contract factory
 ContractFactory = w3.eth.contract(abi=abi, bytecode=bin)
 
-# instantiate contract factory
-ContractFactory = w3.eth.contract(abi=abi, bytecode=bin)
-
 
 #compile cause contract
-# compile cause contract
 contract_name = "CauseContract.sol"
 compile = compile_files([contract_name], output_values=["abi", "bin"])
 abi = list(compile.values())[0]["abi"]
