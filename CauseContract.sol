@@ -11,6 +11,11 @@ contract CauseContract {
 
     // blockChange wallet address
     address payable blockChange;
+
+    // donation total tracker
+    uint256 causeTotal;
+
+    uint256 constant BASIS_POINTS = 50;
     
     // cause inputs
     string id;
@@ -19,19 +24,6 @@ contract CauseContract {
     string websiteURL;
     string thumbnailURL;
     string email;
-
-    // transaction fee for donations
-    uint256 transactionFee;
-
-    // transaction struct
-    struct Transaction {
-        address sender;
-        uint256 amount;
-        uint256 timestamp;
-        uint256 blockNumber;
-        uint256 gasUsed;
-        uint256 transactionFee;
-    }
     
     // incoming donations
     Transaction[] incoming;
@@ -44,8 +36,8 @@ contract CauseContract {
     
     mapping(address => bool) public addressDonated;
 
-    // endCause flag -> 1 = False, 2 = True
-    uint256 public endCause = 1;
+    // causeState flag -> 1 = False, 2 = True
+    uint256 public causeState = 1;
 
     // contract information struct
     struct ContractInfo {
@@ -56,21 +48,28 @@ contract CauseContract {
         Transaction[] outgoing;
         address contractAddress;
         uint256 causeTotal;
-        uint256 endCause;
+        uint256 causeState;
         string emailAddress;
         string causeDescription;
         string websiteURL;
         string thumbnailURL;
     }
 
-    // donation total tracker
-    uint256 causeTotal;
-
-    uint256 constant BASIS_POINTS = 50;
+    // transaction struct
+    struct Transaction {
+        address sender;
+        uint256 amount;
+        uint256 timestamp;
+        uint256 blockNumber;
+        uint256 gasUsed;
+        uint256 transactionFee;
+    }
 
     constructor(string memory _id, string memory _name, address payable _admin, string memory _description, string memory _websiteURL, string memory _thumbnailURL, string memory _email) {
         admin = _admin;
         contractAddress = payable(address(this));
+
+        blockChange = payable(msg.sender);
         
         // initialise cause inputs
         id = _id;
@@ -90,20 +89,19 @@ contract CauseContract {
             outgoing, 
             contractAddress, 
             causeTotal, 
-            endCause, 
+            causeState, 
             email, 
             description, websiteURL, thumbnailURL);
     }
 
     function donate() public payable{
         require(msg.value > 0, "You must send some Ether");
-        require(endCause == 1, "This cause has ended, your funds have been returned");
+        require(causeState == 1, "This cause has ended, your funds have been returned");
 
         uint256 gasStart = gasleft();
 
-        transactionFee = (msg.value*BASIS_POINTS) / 1000; // Transaction fee of 5bps (by default)
+        uint256 transactionFee = (msg.value*BASIS_POINTS) / 1000; // Transaction fee of 5bps (by default)
         
-
         (bool success, ) = blockChange.call{value: transactionFee}("");
         require(success, "Transfer failed.");
 
@@ -118,9 +116,7 @@ contract CauseContract {
         causeTotal += (msg.value - transactionFee);
         // causeStats(causeTotal);
 
-        incoming.push(Transaction(msg.sender, msg.value - transactionFee, block.timestamp, block.number, gasFee, transactionFee));       
-
-        
+        incoming.push(Transaction(msg.sender, msg.value - transactionFee, block.timestamp, block.number, gasFee, transactionFee));          
     }
 
     function withdraw(uint256 _amount) public payable onlyAdmin {
@@ -150,16 +146,16 @@ contract CauseContract {
     }
 
     function toggleCauseState() public onlyAdmin {
-        if (endCause == 1) {
-            endCause = 2;
+        if (causeState == 1) {
+            causeState = 2;
         }
-        else if (endCause == 2){
-            endCause= 1;
+        else if (causeState == 2){
+            causeState= 1;
         }
     }
 
     function distributeFunds() public onlyAdmin {
-        require(endCause == 2, "The cause has not ended yet");
+        require(causeState == 2, "The cause has not ended yet");
         require(address(this).balance > 0, "The contract balance is zero");
 
         uint256 totalDonation = address(this).balance;
