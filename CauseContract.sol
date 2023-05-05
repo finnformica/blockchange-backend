@@ -49,10 +49,10 @@ contract CauseContract {
         address contractAddress;
         uint256 causeTotal;
         uint256 causeState;
-        string emailAddress;
-        string causeDescription;
-        string websiteURL;
-        string thumbnailURL;
+        string email;
+        string description;
+        string website;
+        string thumbnail;
     }
 
     // transaction struct
