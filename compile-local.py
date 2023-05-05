@@ -38,7 +38,11 @@ contract_factory_deployed = w3.eth.contract(
 )
 
 with open("../constants/contractInfo.json", "w") as file:
-    contract_info = {"abi": factory_abi, "address": tx_receipt.contractAddress}
+    contract_info = {
+        "factory_abi": factory_abi,
+        "factory_address": tx_receipt.contractAddress,
+        "contract_abi": contract_abi,
+    }
     json.dump(contract_info, file)
     print("Contract factory info saved successfully")
 
