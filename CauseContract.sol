@@ -36,7 +36,7 @@ contract CauseContract {
     
     mapping(address => bool) public addressDonated;
 
-    // causeState flag -> 1 = False, 2 = True
+    // causeState flag -> 1 = active, 2 = inactive
     uint256 public causeState = 1;
 
     // contract information struct
