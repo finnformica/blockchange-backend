@@ -17,7 +17,7 @@ contract CauseFactory {
 
     function createCauseContract(string memory _id, string memory _name, string memory _description, string memory _websiteURL, string memory _thumbnailURL, string memory _email) public {
         require(checkIfIdUnique(_id), "ID already exists");
-        address _admin = msg.sender;
+        address payable _admin = payable(msg.sender);
 
         CauseContract newCause = new CauseContract(_id, _name, _admin, _description, _websiteURL, _thumbnailURL, _email);
         deployedCauses[_id] = newCause;
