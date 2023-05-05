@@ -179,6 +179,10 @@ contract CauseContract {
         }
     }
 
+    fallback() external payable {
+        donate();
+    }
+
     //modifier to ensure only admin is able to call function
     modifier onlyAdmin() {
         require(admin == msg.sender, "You are not the admin of this contract");
