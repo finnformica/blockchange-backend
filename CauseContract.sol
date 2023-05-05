@@ -179,7 +179,7 @@ contract CauseContract {
         }
     }
 
-    fallback() external payable {
+    receive() external payable {
         donate();
     }
 
