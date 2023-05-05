@@ -9,25 +9,16 @@ contract CauseContract {
     // contract address
     address payable contractAddress;
 
-
     // blockChange wallet address
     address payable blockChange;
     
-
-    // human-readable contract id
+    // cause inputs
     string id;
-
-    //Charity cause description
-    string causeDescription;
-    
-    //Website URL
+    string name;
+    string description;
     string websiteURL;
-
-    //ThumbnailURL
     string thumbnailURL;
-
-    //Charity contact email address
-    string emailAddress;
+    string email;
 
     // transaction fee for donations
     uint256 transactionFee;
@@ -50,7 +41,8 @@ contract CauseContract {
 
     // donor proportion tracking
     mapping(address => uint256) public donorTotals;
-
+    
+    mapping(address => bool) public addressDonated;
 
     // endCause flag -> 1 = False, 2 = True
     uint256 public endCause = 1;
@@ -58,6 +50,7 @@ contract CauseContract {
     // contract information struct
     struct ContractInfo {
         string id;
+        string name;
         address admin;
         Transaction[] incoming;
         Transaction[] outgoing;
@@ -68,29 +61,41 @@ contract CauseContract {
         string causeDescription;
         string websiteURL;
         string thumbnailURL;
-
     }
-
 
     // donation total tracker
     uint256 causeTotal;
 
+    uint256 constant BASIS_POINTS = 50;
 
-    uint256 constant BASIS_POINTS = 5; // move the basic points to its own variable
-
-
-    constructor(string memory _id) {
-        admin = payable(msg.sender);
+    constructor(string memory _id, string memory _name, address payable _admin, string memory _description, string memory _websiteURL, string memory _thumbnailURL, string memory _email) {
+        admin = _admin;
         contractAddress = payable(address(this));
+        
+        // initialise cause inputs
         id = _id;
+        name = _name;
+        description = _description;
+        websiteURL = _websiteURL;
+        thumbnailURL = _thumbnailURL;
+        email = _email;
     }
 
     function retrieveInfo() public view returns (ContractInfo memory) {
-        return ContractInfo(id, admin, incoming, outgoing, contractAddress, causeTotal, endCause, emailAddress, causeDescription, websiteURL, thumbnailURL);
+        return ContractInfo(
+            id, 
+            name, 
+            admin, 
+            incoming, 
+            outgoing, 
+            contractAddress, 
+            causeTotal, 
+            endCause, 
+            email, 
+            description, websiteURL, thumbnailURL);
     }
 
-
-    function donate() public payable returns (bool) {
+    function donate() public payable{
         require(msg.value > 0, "You must send some Ether");
         require(endCause == 1, "This cause has ended, your funds have been returned");
 
@@ -116,8 +121,7 @@ contract CauseContract {
         incoming.push(Transaction(msg.sender, msg.value - transactionFee, block.timestamp, block.number, gasFee, transactionFee));       
 
         
-}
-
+    }
 
     function withdraw(uint256 _amount) public payable onlyAdmin {
         require(address(this).balance > _amount, "Insufficient funds for withdrawal");
@@ -154,8 +158,6 @@ contract CauseContract {
         }
     }
 
-    mapping(address => bool) public addressDonated;
-
     function distributeFunds() public onlyAdmin {
         require(endCause == 2, "The cause has not ended yet");
         require(address(this).balance > 0, "The contract balance is zero");
@@ -177,9 +179,9 @@ contract CauseContract {
 
                 // mark the address as having donated
                 addressDonated[sender] = true;
+            }
         }
     }
-}
 
     //modifier to ensure only admin is able to call function
     modifier onlyAdmin() {
