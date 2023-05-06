@@ -102,19 +102,18 @@ contract CauseContract {
 
         uint256 transactionFee = (msg.value*BASIS_POINTS) / 1000; // Transaction fee of 5bps (by default)
         
-        (bool success, ) = blockChange.call{value: transactionFee}("");
-        require(success, "Transfer failed.");
+        // (bool success, ) = blockChange.call{value: transactionFee}("");
+        // require(success, "Transfer failed.");
 
         uint256 gasUsed = gasStart - gasleft();
         uint256 gasPrice = tx.gasprice;
         uint256 gasFee = gasUsed * gasPrice;
 
-         // update donor proportion
+        // update donor proportion
         donorTotals[msg.sender] += msg.value;
 
-        //update causeTotal
+        // update causeTotal
         causeTotal += (msg.value - transactionFee);
-        // causeStats(causeTotal);
 
         incoming.push(Transaction(msg.sender, msg.value - transactionFee, block.timestamp, block.number, gasFee, transactionFee));          
     }
@@ -124,7 +123,7 @@ contract CauseContract {
         
         uint256 gasStart = gasleft();
         
-
+        causeTotal -= _amount;
 
         // use the transfer method to transfer the amount to the admin's address
         (bool success, ) = admin.call{value: _amount}("");
@@ -183,7 +182,7 @@ contract CauseContract {
         donate();
     }
 
-    //modifier to ensure only admin is able to call function
+    // modifier to ensure only admin is able to call function
     modifier onlyAdmin() {
         require(admin == msg.sender, "You are not the admin of this contract");
         _;
