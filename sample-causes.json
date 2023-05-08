@@ -1,6 +1,6 @@
 [{
     "id": "malnutrition-in-africa",
-    "desc": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Etiam non quam lacus suspendisse faucibus. Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Etiam non quam lacus suspendisse faucibus.",
+    "desc": "Malnutrition is a serious problem affecting millions of people in Africa. Children are particularly vulnerable to its devastating effects, which can lead to stunted growth, weakened immune systems, and even death. With your support, we can provide lifesaving nutrition to those in need and help combat malnutrition in Africa.",
     "image_url":
       "https://images.unsplash.com/photo-1504159506876-f8338247a14a?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1738&q=80",
     "admin": "0x391EC0c94451e924C76a2B1ffc08268823f094e5",
@@ -10,7 +10,7 @@
   },
   {
     "id": "ukraine-war",
-    "desc": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Etiam non quam lacus suspendisse faucibus. Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Etiam non quam lacus suspendisse faucibus.",
+    "desc": "The ongoing conflict in Ukraine has caused immense suffering for its people, with countless lives lost and many more displaced from their homes. Your donation can provide essential aid to those affected by the conflict, including food, shelter, and medical care. Together, we can support those affected by the Ukraine war and work towards a brighter future for all.",
     "image_url":
       "https://images.unsplash.com/photo-1646323999953-b331af10adfa?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1848&q=80",
     "admin": "0x391EC0c94451e924C76a2B1ffc08268823f094e5",
@@ -20,7 +20,7 @@
   },
   {
     "id": "education-for-all",
-    "desc": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Etiam non quam lacus suspendisse faucibus. Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Etiam non quam lacus suspendisse faucibus.",
+    "desc": "Access to education is a basic human right, yet millions of children around the world are unable to attend school due to poverty, conflict, and other factors. With your support, we can help ensure that every child has the opportunity to learn and thrive. Your donation can provide resources such as books, teachers, and classrooms, giving children the chance to build a brighter future.",
     "image_url":
       "https://images.unsplash.com/photo-1459183885421-5cc683b8dbba?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1740&q=80",
     "admin": "0x391EC0c94451e924C76a2B1ffc08268823f094e5",
@@ -30,7 +30,7 @@
   },
   {
     "id": "covid-19-relief-fund",
-    "desc": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Etiam non quam lacus suspendisse faucibus. Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Etiam non quam lacus suspendisse faucibus.",
+    "desc": "The Covid-19 Relief Fund aims to provide immediate assistance to those who are most affected by the pandemic. This includes supporting healthcare workers, providing essential supplies to vulnerable communities, and helping people who have lost their jobs or are struggling to make ends meet. With your support, we can alleviate the impact of Covid-19 on individuals and communities worldwide.",
     "image_url":
       "https://images.unsplash.com/photo-1605722558200-b83d78c255a7?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1740&q=80",
     "admin": "0x391EC0c94451e924C76a2B1ffc08268823f094e5",
