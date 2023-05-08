@@ -25,7 +25,7 @@ contract CauseFactory {
         ids.push(_id);
     }
 
-    function cfRetrieveInfo(string[] memory _ids) public view returns (CauseContract.ContractInfo[] memory) {
+    function cfRetrieveInfo(string[] memory _ids) public view checkIfAllIdExists(_ids) returns (CauseContract.ContractInfo[] memory) {
         CauseContract.ContractInfo[] memory infos = new CauseContract.ContractInfo[](_ids.length);
         for (uint i = 0; i < _ids.length; i++) {
             infos[i] = deployedCauses[_ids[i]].retrieveInfo();
@@ -33,7 +33,34 @@ contract CauseFactory {
         return infos;
     }
 
-    function cfRetrieveIds() public view returns (string[] memory) {
+    function cfRetrieveIds(string memory id) public view checkIfIdExists(id) returns (string[] memory) {
         return ids;
     }
+
+    modifier checkIfIdExists(string memory id) {
+        bool idExists = false;
+        for (uint i = 0; i < ids.length; i++) {
+            if (keccak256(abi.encodePacked(ids[i])) == keccak256(abi.encodePacked(id))) {
+                idExists = true;
+                break;
+            }
+        }
+        require(idExists, "ID does not exist");
+        _;
+    }
+
+    modifier checkIfAllIdExists(string[] memory _ids) {
+        for (uint i = 0; i < _ids.length; i++) {
+            bool AllIdExists = false;
+            for (uint j = 0; j < ids.length; j++) {
+                if (keccak256(abi.encodePacked(ids[j])) == keccak256(abi.encodePacked(_ids[i]))) {
+                    AllIdExists = true;
+                    break;
+                }
+            }
+            require(AllIdExists, "There are IDs that do not exist");
+        }
+        _;
+    }
+
 }
