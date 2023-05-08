@@ -77,5 +77,5 @@ ids = contract_factory_deployed.functions.cfRetrieveIds().call()
 print("\nCause ids:", ids)
 
 # retrieve info from first CauseContract
-info = contract_factory_deployed.functions.cfRetrieveInfo(ids[0]).call()
+info = contract_factory_deployed.functions.cfRetrieveInfo(ids[:1]).call()
 print("\nCause info:", json.dumps(info, indent=4))
