@@ -10,7 +10,7 @@ contract CauseFactory {
 
     // store all deployed causes
     mapping(string => CauseContract) public deployedCauses;
-
+    
     function checkIfIdUnique(string memory _id) public view returns (bool) {
         return address(deployedCauses[_id]) == address(0);
     }
@@ -33,7 +33,8 @@ contract CauseFactory {
         return infos;
     }
 
-    function cfRetrieveIds() public view returns (string[] memory) {
-        return ids;
-    }
+    // Remove cfRetrieveIds function since it has a parameter id that is not being used within the function, and it is returning the ids array, which is already marked as public.
+    // function cfRetrieveIds(string memory id) public view checkIfIdExists(id) returns (string[] memory) {
+    //     return ids;
+    // }
 }
