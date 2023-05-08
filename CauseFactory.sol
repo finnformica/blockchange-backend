@@ -25,12 +25,15 @@ contract CauseFactory {
         ids.push(_id);
     }
 
-    function cfRetrieveInfo(string memory _id) public view returns (CauseContract.ContractInfo memory) {
-        return deployedCauses[_id].retrieveInfo();
+    function cfRetrieveInfo(string[] memory _ids) public view returns (CauseContract.ContractInfo[] memory) {
+        CauseContract.ContractInfo[] memory infos = new CauseContract.ContractInfo[](_ids.length);
+        for (uint i = 0; i < _ids.length; i++) {
+            infos[i] = deployedCauses[_ids[i]].retrieveInfo();
+        }
+        return infos;
     }
 
     function cfRetrieveIds() public view returns (string[] memory) {
         return ids;
     }
 }
-
