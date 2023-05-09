@@ -35,9 +35,7 @@ contract CauseContract {
     Transaction[] outgoing;
 
     // donor proportion tracking
-    mapping(address => uint256) public donorTotals;
-    
-    // mapping(address => bool) public addressDonated;
+    mapping(address => uint256) public donorTotals;    
 
     // causeState flag -> 1 = active, 2 = inactive
     uint256 public causeState = 1;
@@ -70,10 +68,7 @@ contract CauseContract {
 
     constructor(string memory _id, string memory _name, address payable _admin, string memory _description, string memory _websiteURL, string memory _thumbnailURL, string memory _email) {
         admin = _admin;
-
-        //  directly use address(this) whenever needed can save some storage and gas
-        // contractAddress = payable(address(this));
-
+        
         blockChange = payable(msg.sender);
 
         // Calculate transactionFeeBasisPoints only once during contract creation
