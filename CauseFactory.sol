@@ -33,8 +33,7 @@ contract CauseFactory {
         return infos;
     }
 
-    // Remove cfRetrieveIds function since it has a parameter id that is not being used within the function, and it is returning the ids array, which is already marked as public.
-    // function cfRetrieveIds(string memory id) public view checkIfIdExists(id) returns (string[] memory) {
-    //     return ids;
-    // }
+    function cfRetrieveIds() public view returns (string[] memory) {
+        return ids;
+    }
 }
