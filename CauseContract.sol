@@ -62,8 +62,6 @@ contract CauseContract {
         uint256 amount;
         uint256 timestamp;
         uint256 blockNumber;
-        uint256 gasUsed;
-        uint256 transactionFee;
     }
 
     constructor(string memory _id, string memory _name, address payable _admin, string memory _description, string memory _websiteURL, string memory _thumbnailURL, string memory _email) {
@@ -101,8 +99,6 @@ contract CauseContract {
         require(msg.value > 0, "You must send some Ether");
         require(causeState == 1, "This cause has ended, your funds have been returned");
 
-        uint256 gasStart = gasleft();
-
         // Use transactionFeeBasisPoints to calculate transactionFee
         uint256 transactionFee = msg.value * transactionFeeBasisPoints;
 
@@ -110,11 +106,6 @@ contract CauseContract {
         // `msg.value - transactionFee` was used twice -> store it in a variable to save gas
         // Calculate netDonation and use it later for gas optimization
         uint256 netDonation = msg.value - transactionFee;
-
-        // Move gas calculation to the end of the function for gas optimization
-        uint256 gasUsed = gasStart - gasleft();
-        uint256 gasPrice = tx.gasprice;
-        uint256 gasFee = gasUsed * gasPrice;
 
         // Transfer the transactionFee
         (bool success, ) = blockChange.call{value: transactionFee}("");
@@ -126,13 +117,11 @@ contract CauseContract {
         // update causeTotal
         causeTotal += netDonation;
 
-        incoming.push(Transaction(msg.sender, netDonation, block.timestamp, block.number, gasFee, transactionFee));          
+        incoming.push(Transaction(msg.sender, netDonation, block.timestamp, block.number));          
     }
 
     function withdraw(uint256 _amount) public payable onlyAdmin {
         require(address(this).balance > _amount, "Insufficient funds for withdrawal");
-        
-        uint256 gasStart = gasleft();
         
         causeTotal -= _amount;
         
@@ -143,11 +132,7 @@ contract CauseContract {
         // But be aware of possible security risks
         admin.transfer(_amount);
 
-        uint256 gasUsed = gasStart - gasleft();
-        uint256 gasPrice = tx.gasprice;
-        uint256 gasFee = gasUsed * gasPrice;
-
-        outgoing.push(Transaction(msg.sender, _amount, block.timestamp, block.number, gasFee, 0));
+        outgoing.push(Transaction(msg.sender, _amount, block.timestamp, block.number));
     }
 
     function authenticateAdmin() public view onlyAdmin returns (bool) {
