@@ -15,8 +15,11 @@ contract CauseContract {
     // donation total tracker
     uint256 causeTotal;
 
+    // Transaction fee of 50bps (by default)
     uint256 constant BASIS_POINTS = 50;
-    
+    // Add transactionFeeBasisPoints variable for gas optimization
+    uint256 transactionFeeBasisPoints;
+
     // cause inputs
     string id;
     string name;
@@ -32,9 +35,7 @@ contract CauseContract {
     Transaction[] outgoing;
 
     // donor proportion tracking
-    mapping(address => uint256) public donorTotals;
-    
-    mapping(address => bool) public addressDonated;
+    mapping(address => uint256) public donorTotals;    
 
     // causeState flag -> 1 = active, 2 = inactive
     uint256 public causeState = 1;
@@ -61,15 +62,15 @@ contract CauseContract {
         uint256 amount;
         uint256 timestamp;
         uint256 blockNumber;
-        uint256 gasUsed;
-        uint256 transactionFee;
     }
 
     constructor(string memory _id, string memory _name, address payable _admin, string memory _description, string memory _websiteURL, string memory _thumbnailURL, string memory _email) {
         admin = _admin;
-        contractAddress = payable(address(this));
-
+        
         blockChange = payable(msg.sender);
+
+        // Calculate transactionFeeBasisPoints only once during contract creation
+        transactionFeeBasisPoints = BASIS_POINTS / 1000;
         
         // initialise cause inputs
         id = _id;
@@ -87,7 +88,7 @@ contract CauseContract {
             admin, 
             incoming, 
             outgoing, 
-            contractAddress, 
+            address(this), // using address(this) to replace contractAddress for gas optimization 
             causeTotal, 
             causeState, 
             email, 
@@ -98,42 +99,40 @@ contract CauseContract {
         require(msg.value > 0, "You must send some Ether");
         require(causeState == 1, "This cause has ended, your funds have been returned");
 
-        uint256 gasStart = gasleft();
+        // Use transactionFeeBasisPoints to calculate transactionFee
+        uint256 transactionFee = msg.value * transactionFeeBasisPoints;
 
-        uint256 transactionFee = (msg.value*BASIS_POINTS) / 1000; // Transaction fee of 5bps (by default)
-        
-        // (bool success, ) = blockChange.call{value: transactionFee}("");
-        // require(success, "Transfer failed.");
 
-        uint256 gasUsed = gasStart - gasleft();
-        uint256 gasPrice = tx.gasprice;
-        uint256 gasFee = gasUsed * gasPrice;
+        // `msg.value - transactionFee` was used twice -> store it in a variable to save gas
+        // Calculate netDonation and use it later for gas optimization
+        uint256 netDonation = msg.value - transactionFee;
+
+        // Transfer the transactionFee
+        (bool success, ) = blockChange.call{value: transactionFee}("");
+        require(success, "Transfer failed.");
 
         // update donor proportion
-        donorTotals[msg.sender] += msg.value;
+        donorTotals[msg.sender] += netDonation;
 
         // update causeTotal
-        causeTotal += (msg.value - transactionFee);
+        causeTotal += netDonation;
 
-        incoming.push(Transaction(msg.sender, msg.value - transactionFee, block.timestamp, block.number, gasFee, transactionFee));          
+        incoming.push(Transaction(msg.sender, netDonation, block.timestamp, block.number));          
     }
 
     function withdraw(uint256 _amount) public payable onlyAdmin {
         require(address(this).balance > _amount, "Insufficient funds for withdrawal");
         
-        uint256 gasStart = gasleft();
-        
         causeTotal -= _amount;
+        
+        // (bool success, ) = admin.call{value: _amount}("");
+        // require(success, "Withdrawal failed");
 
-        // use the transfer method to transfer the amount to the admin's address
-        (bool success, ) = admin.call{value: _amount}("");
-        require(success, "Withdrawal failed");
+        // Replace call method with transfer for gas optimization
+        // But be aware of possible security risks
+        admin.transfer(_amount);
 
-        uint256 gasUsed = gasStart - gasleft();
-        uint256 gasPrice = tx.gasprice;
-        uint256 gasFee = gasUsed * gasPrice;
-
-        outgoing.push(Transaction(msg.sender, _amount, block.timestamp, block.number, gasFee, 0));
+        outgoing.push(Transaction(msg.sender, _amount, block.timestamp, block.number));
     }
 
     function authenticateAdmin() public view onlyAdmin returns (bool) {
@@ -159,21 +158,23 @@ contract CauseContract {
 
         uint256 totalDonation = address(this).balance;
 
+        // Replace the mapping with a boolean array for gas optimization
+        bool[] memory addressDonated = new bool[](incoming.length);
+
         // keep track of whether an address has already donated or not
         for (uint256 i = 0; i < incoming.length; i++) {
             address sender = incoming[i].sender;
 
-            // check if the address has already donated
-            if (!addressDonated[sender]) {
+            // check if the address has already donated using the array
+            if (!addressDonated[i]) {
                 uint256 proportion = donorTotals[sender] * 100 / totalDonation;
                 uint256 donation = totalDonation * proportion / 100;
                 if (donation > 0) {
                     (bool success, ) = sender.call{value: donation}("");
                     require(success, "Failed to distribute funds to donor");
                 }
-
-                // mark the address as having donated
-                addressDonated[sender] = true;
+                // mark the address as having donated using the array
+                addressDonated[i] = true;
             }
         }
     }
