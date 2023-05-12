@@ -6,8 +6,11 @@ contract CauseContract {
     // admin address
     address payable admin;
 
-    // contract address
-    address payable contractAddress;
+    // Contract owner address
+    // address public owner;
+
+    // Contract address
+    address contractAddress = address(this);
 
     // blockChange wallet address
     address payable blockChange;
@@ -15,8 +18,11 @@ contract CauseContract {
     // donation total tracker
     uint256 causeTotal;
 
+    // Transaction fee of 50bps (by default)
     uint256 constant BASIS_POINTS = 50;
-    
+    // Add transactionFeeBasisPoints variable for gas optimization
+    uint256 transactionFeeBasisPoints;
+
     // cause inputs
     string id;
     string name;
@@ -24,7 +30,7 @@ contract CauseContract {
     string websiteURL;
     string thumbnailURL;
     string email;
-    
+   
     // incoming donations
     Transaction[] incoming;
 
@@ -32,8 +38,9 @@ contract CauseContract {
     Transaction[] outgoing;
 
     // donor proportion tracking
-    mapping(address => uint256) public donorTotals;
-    
+    mapping(address => uint256) public donorTotals;    
+
+    // mapping used for unique address identification in redistribute funds function
     mapping(address => bool) public addressDonated;
 
     // causeState flag -> 1 = active, 2 = inactive
@@ -61,16 +68,16 @@ contract CauseContract {
         uint256 amount;
         uint256 timestamp;
         uint256 blockNumber;
-        uint256 gasUsed;
-        uint256 transactionFee;
     }
 
     constructor(string memory _id, string memory _name, address payable _admin, string memory _description, string memory _websiteURL, string memory _thumbnailURL, string memory _email) {
         admin = _admin;
-        contractAddress = payable(address(this));
-
+        // owner = msg.sender; // creator of the contract
         blockChange = payable(msg.sender);
-        
+
+        // Calculate transactionFeeBasisPoints only once during contract creation
+        transactionFeeBasisPoints = BASIS_POINTS / 1000;
+       
         // initialise cause inputs
         id = _id;
         name = _name;
@@ -87,7 +94,7 @@ contract CauseContract {
             admin, 
             incoming, 
             outgoing, 
-            contractAddress, 
+            address(this),
             causeTotal, 
             causeState, 
             email, 
@@ -98,42 +105,40 @@ contract CauseContract {
         require(msg.value > 0, "You must send some Ether");
         require(causeState == 1, "This cause has ended, your funds have been returned");
 
-        uint256 gasStart = gasleft();
+        // Use transactionFeeBasisPoints to calculate transactionFee
+        uint256 transactionFee = msg.value * transactionFeeBasisPoints;
 
-        uint256 transactionFee = (msg.value*BASIS_POINTS) / 1000; // Transaction fee of 5bps (by default)
-        
-        // (bool success, ) = blockChange.call{value: transactionFee}("");
-        // require(success, "Transfer failed.");
 
-        uint256 gasUsed = gasStart - gasleft();
-        uint256 gasPrice = tx.gasprice;
-        uint256 gasFee = gasUsed * gasPrice;
+        // `msg.value - transactionFee` was used twice -> store it in a variable to save gas
+        // Calculate netDonation and use it later for gas optimization
+        uint256 netDonation = msg.value - transactionFee;
+
+        // Transfer the transactionFee
+        (bool success, ) = blockChange.call{value: transactionFee}("");
+        require(success, "Transfer failed.");
 
         // update donor proportion
         donorTotals[msg.sender] += msg.value;
 
         // update causeTotal
-        causeTotal += (msg.value - transactionFee);
+        causeTotal += netDonation;
 
-        incoming.push(Transaction(msg.sender, msg.value - transactionFee, block.timestamp, block.number, gasFee, transactionFee));          
+        incoming.push(Transaction(msg.sender, netDonation, block.timestamp, block.number));          
     }
 
     function withdraw(uint256 _amount) public payable onlyAdmin {
         require(address(this).balance > _amount, "Insufficient funds for withdrawal");
-        
-        uint256 gasStart = gasleft();
-        
+       
         causeTotal -= _amount;
+       
+        // (bool success, ) = admin.call{value: _amount}("");
+        // require(success, "Withdrawal failed");
 
-        // use the transfer method to transfer the amount to the admin's address
-        (bool success, ) = admin.call{value: _amount}("");
-        require(success, "Withdrawal failed");
+        // Replace call method with transfer for gas optimization
+        // But be aware of possible security risks
+        admin.transfer(_amount);
 
-        uint256 gasUsed = gasStart - gasleft();
-        uint256 gasPrice = tx.gasprice;
-        uint256 gasFee = gasUsed * gasPrice;
-
-        outgoing.push(Transaction(msg.sender, _amount, block.timestamp, block.number, gasFee, 0));
+        outgoing.push(Transaction(msg.sender, _amount, block.timestamp, block.number));
     }
 
     function authenticateAdmin() public view onlyAdmin returns (bool) {
@@ -160,7 +165,7 @@ contract CauseContract {
         uint256 totalDonation = address(this).balance;
 
         // keep track of whether an address has already donated or not
-        for (uint256 i = 0; i < incoming.length; i++) {
+                for (uint256 i = 0; i < incoming.length; i++) {
             address sender = incoming[i].sender;
 
             // check if the address has already donated
@@ -182,9 +187,22 @@ contract CauseContract {
         donate();
     }
 
+    function getAdmin() public view returns (address) {
+        return admin;
+    }
+
+    function setCauseStateInactive() public onlyAdmin {
+        causeState = 2;
+    }
+
     // modifier to ensure only admin is able to call function
     modifier onlyAdmin() {
-        require(admin == msg.sender, "You are not the admin of this contract");
+        require(admin == msg.sender || blockChange == msg.sender, "You are not the admin of this contract");
         _;
     }
+
+//     modifier onlyOwner() {
+//     require(owner == msg.sender, "You are not the owner of this contract");
+//     _;
+// }
 }

@@ -11,6 +11,12 @@ contract CauseFactory {
     // store all deployed causes
     mapping(string => CauseContract) public deployedCauses;
 
+    // // CauseFactory Contract
+    // address public owner;
+    // constructor() {
+    //     owner = msg.sender;
+    // }
+
     function checkIfIdUnique(string memory _id) public view returns (bool) {
         return address(deployedCauses[_id]) == address(0);
     }
@@ -21,7 +27,7 @@ contract CauseFactory {
 
         CauseContract newCause = new CauseContract(_id, _name, _admin, _description, _websiteURL, _thumbnailURL, _email);
         deployedCauses[_id] = newCause;
-        
+       
         ids.push(_id);
     }
 
@@ -35,5 +41,35 @@ contract CauseFactory {
 
     function cfRetrieveIds() public view returns (string[] memory) {
         return ids;
+    }
+
+    //     // modifier to ensure only admin is able to call function
+    // modifier onlyAdmin() {
+    //     require(deployedCauses[_id].getAdmin() == msg.sender, "You are not the admin of this contract");
+    //     _;
+    // }
+
+    function deleteCauseContract(string memory _id) public {
+        require(address(deployedCauses[_id]) != address(0), "Cause does not exist");
+        require(deployedCauses[_id].getAdmin() == msg.sender, "You are not the admin of this contract");
+
+        // End the cause and distribute funds to the donors
+        deployedCauses[_id].setCauseStateInactive();
+        // Added condition to check if CauseContract contains funds, if so redistribute (avoids reversion if balance = 0)
+        if(address(deployedCauses[_id]).balance > 0){
+            deployedCauses[_id].distributeFunds();
+        }
+        delete deployedCauses[_id];
+
+        for (uint256 i = 0; i < ids.length; i++) {
+            if (keccak256(abi.encodePacked((ids[i]))) == keccak256(abi.encodePacked((_id)))) {
+                // Maintain order when deleting
+                for (uint256 j = i; j < ids.length - 1; j++){
+                    ids[j] = ids[j + 1];
+                }
+                ids.pop();
+                break;
+            }
+        }
     }
 }
