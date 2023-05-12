@@ -195,7 +195,7 @@ contract CauseContract {
         causeState = 2;
     }
 
-    // modifier to ensure only admin is able to call function
+    // modifier to ensure only admin or contract factory is able to call function
     modifier onlyAdmin() {
         require(admin == msg.sender || blockChange == msg.sender, "You are not the admin of this contract");
         _;
