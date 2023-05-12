@@ -10,7 +10,7 @@ contract CauseFactory {
 
     // store all deployed causes
     mapping(string => CauseContract) public deployedCauses;
-    
+
     function checkIfIdUnique(string memory _id) public view returns (bool) {
         return address(deployedCauses[_id]) == address(0);
     }
