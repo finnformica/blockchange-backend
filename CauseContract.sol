@@ -136,12 +136,8 @@ contract CauseContract {
        
         causeWithdrawalTotal += _amount;
        
-        // (bool success, ) = admin.call{value: _amount}("");
-        // require(success, "Withdrawal failed");
-
-        // Replace call method with transfer for gas optimization
-        // But be aware of possible security risks
-        admin.transfer(_amount);
+        (bool success, ) = admin.call{value: _amount}("");
+        require(success, "Withdrawal failed");
 
         outgoing.push(Transaction(msg.sender, _amount, block.timestamp, block.number));
     }
