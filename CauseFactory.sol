@@ -11,11 +11,6 @@ contract CauseFactory {
     // store all deployed causes
     mapping(string => CauseContract) public deployedCauses;
 
-    // // CauseFactory Contract
-    // address public owner;
-    // constructor() {
-    //     owner = msg.sender;
-    // }
 
     function checkIfIdUnique(string memory _id) public view returns (bool) {
         return address(deployedCauses[_id]) == address(0);
@@ -43,11 +38,6 @@ contract CauseFactory {
         return ids;
     }
 
-    //     // modifier to ensure only admin is able to call function
-    // modifier onlyAdmin() {
-    //     require(deployedCauses[_id].getAdmin() == msg.sender, "You are not the admin of this contract");
-    //     _;
-    // }
 
     function deleteCauseContract(string memory _id) public {
         require(address(deployedCauses[_id]) != address(0), "Cause does not exist");

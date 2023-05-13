@@ -18,6 +18,9 @@ contract CauseContract {
     // donation total tracker
     uint256 causeTotal;
 
+    // cause withdrawal total tracker
+    uint256 causeWithdrawalTotal;
+
     // Transaction fee of 50bps (by default)
     uint256 constant BASIS_POINTS = 50;
     // Add transactionFeeBasisPoints variable for gas optimization
@@ -55,6 +58,7 @@ contract CauseContract {
         Transaction[] outgoing;
         address contractAddress;
         uint256 causeTotal;
+        uint256 causeWithdrawalTotal;
         uint256 causeState;
         string email;
         string description;
@@ -96,6 +100,7 @@ contract CauseContract {
             outgoing, 
             address(this),
             causeTotal, 
+            causeWithdrawalTotal,
             causeState, 
             email, 
             description, websiteURL, thumbnailURL);
@@ -129,7 +134,7 @@ contract CauseContract {
     function withdraw(uint256 _amount) public payable onlyAdmin {
         require(address(this).balance > _amount, "Insufficient funds for withdrawal");
        
-        causeTotal -= _amount;
+        causeWithdrawalTotal += _amount;
        
         // (bool success, ) = admin.call{value: _amount}("");
         // require(success, "Withdrawal failed");
@@ -147,6 +152,12 @@ contract CauseContract {
 
     function updateAdmin(address _newAdmin) public onlyAdmin {
         admin = payable(_newAdmin);
+
+    }
+
+    function getAdmin() public view returns (address){
+        return admin;
+
     }
 
     function toggleCauseState() public onlyAdmin {
@@ -187,10 +198,6 @@ contract CauseContract {
         donate();
     }
 
-    function getAdmin() public view returns (address) {
-        return admin;
-    }
-
     function setCauseStateInactive() public onlyAdmin {
         causeState = 2;
     }
@@ -201,8 +208,4 @@ contract CauseContract {
         _;
     }
 
-//     modifier onlyOwner() {
-//     require(owner == msg.sender, "You are not the owner of this contract");
-//     _;
-// }
 }
