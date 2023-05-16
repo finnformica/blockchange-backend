@@ -119,8 +119,8 @@ contract CauseContract {
         uint256 netDonation = msg.value - transactionFee;
 
         // Transfer the transactionFee
-        (bool success, ) = blockChange.call{value: transactionFee}("");
-        require(success, "Transfer failed.");
+        // (bool success, ) = blockChange.call{value: transactionFee}("");
+        // require(success, "Transfer failed.");
 
         // update donor proportion
         donorTotals[msg.sender] += msg.value;
@@ -132,7 +132,7 @@ contract CauseContract {
     }
 
     function withdraw(uint256 _amount) public payable onlyAdmin {
-        require(address(this).balance > _amount, "Insufficient funds for withdrawal");
+        require(address(this).balance >= _amount, "Insufficient funds for withdrawal");
        
         causeWithdrawalTotal += _amount;
        
