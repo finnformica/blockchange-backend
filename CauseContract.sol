@@ -136,8 +136,7 @@ contract CauseContract {
        
         causeWithdrawalTotal += _amount;
        
-        (bool success, ) = admin.call{value: _amount}("");
-        require(success, "Withdrawal failed");
+        admin.transfer(_amount);
 
         outgoing.push(Transaction(msg.sender, _amount, block.timestamp, block.number));
     }
