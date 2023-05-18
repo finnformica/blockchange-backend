@@ -37,12 +37,7 @@ ContractFactory = w3.eth.contract(abi=factory_abi, bytecode=factory_bin)
 
 # build transaction
 build_tx = ContractFactory.constructor().build_transaction(
-    {
-        "from": addr,
-        "nonce": w3.eth.get_transaction_count(addr),
-        # "gas": 3000000,
-        # "gasPrice": w3.toWei("3", "gwei"),
-    }
+    {"from": addr, "nonce": w3.eth.get_transaction_count(addr)}
 )
 
 # sign transaction
@@ -73,34 +68,15 @@ with open("sample-causes.json") as file:
 
 # deploy sample CauseContracts
 for cause in causes:
-    # tx_hash = contract_factory_deployed.functions.createCauseContract(
-    #     cause["id"],
-    #     cause["title"],
-    #     cause["desc"],
-    #     "",
-    #     cause["image_url"],
-    #     cause["email"],
-    # ).transact()
-
-    # tx_receipt = w3.eth.wait_for_transaction_receipt(tx_hash)
-
-    # -----------------
-
     # build transaction
-    build_tx = contract_factory_deployed.functions.createCauseContract.build_transaction(
+    build_tx = contract_factory_deployed.functions.createCauseContract(
         cause["id"],
         cause["title"],
         cause["desc"],
         "",
         cause["image_url"],
         cause["email"],
-        {
-            "from": addr,
-            "nonce": w3.eth.get_transaction_count(addr),
-            # "gas": 3000000,
-            # "gasPrice": w3.toWei("3", "gwei"),
-        },
-    )
+    ).build_transaction({"from": addr, "nonce": w3.eth.get_transaction_count(addr)})
 
     # sign transaction
     sign_tx = w3.eth.account.sign_transaction(build_tx, METAMASK_SKEY)
