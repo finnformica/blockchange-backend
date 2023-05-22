@@ -69,6 +69,7 @@ contract CauseContract {
         string description;
         string website;
         string thumbnail;
+        uint256 fundsDistributedFlag;
     }
 
     // transaction struct
@@ -106,7 +107,10 @@ contract CauseContract {
             causeWithdrawalTotal,
             causeState, 
             email, 
-            description, websiteURL, thumbnailURL);
+            description, 
+            websiteURL, 
+            thumbnailURL,
+            fundsDistributedFlag);
     }
 
     function donate() public payable{
