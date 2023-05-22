@@ -21,6 +21,11 @@ contract CauseContract {
     // cause withdrawal total tracker
     uint256 causeWithdrawalTotal;
 
+
+    // Flag for whether funds have been redistributed -> 1= False, 2=True
+    uint256 fundsDistributedFlag = 1;
+
+
     // Transaction fee of 50bps (by default)
     uint256 constant BASIS_POINTS = 50;
     // Add transactionFeeBasisPoints variable for gas optimization
@@ -116,9 +121,8 @@ contract CauseContract {
         // Calculate netDonation and use it later for gas optimization
         uint256 netDonation = msg.value - transactionFee;
 
-        // Transfer the transactionFee
-        (bool success, ) = blockChange.call{value: transactionFee}("");
-        require(success, "Transfer failed.");
+
+
 
         // update donor proportion
         donorTotals[msg.sender] += msg.value;
@@ -126,18 +130,26 @@ contract CauseContract {
         // update causeTotal
         causeTotal += netDonation;
 
-        incoming.push(Transaction(msg.sender, netDonation, block.timestamp, block.number));          
+
+        incoming.push(Transaction(msg.sender, netDonation, block.timestamp, block.number)); 
+
+        // Transfer the transactionFee as last stage of function execution
+        (bool success, ) = blockChange.call{value: transactionFee}("");
+        require(success, "Transfer failed.");         
+
     }
 
     function withdraw(uint256 _amount) public payable onlyAdmin {
         require(address(this).balance >= _amount, "Insufficient funds for withdrawal");
        
         causeWithdrawalTotal += _amount;
-       
+
+
+        outgoing.push(Transaction(msg.sender, _amount, block.timestamp, block.number));
+
         (bool success, ) = admin.call{value: _amount}("");
         require(success, "Withdrawal failed");
 
-        outgoing.push(Transaction(msg.sender, _amount, block.timestamp, block.number));
     }
 
     function authenticateAdmin() public view onlyAdmin returns (bool) {
@@ -155,6 +167,7 @@ contract CauseContract {
     }
 
     function toggleCauseState() public onlyAdmin {
+        require(fundsDistributedFlag == 1, "Funds have been redistributed, please delete the cause");
         if (causeState == 1) {
             causeState = 2;
         }
@@ -165,7 +178,9 @@ contract CauseContract {
 
     function distributeFunds() public onlyAdmin {
         require(causeState == 2, "The cause has not ended yet");
+        require(fundsDistributedFlag == 1, "Funds have already been redistributed, please delete the cause");
         require(address(this).balance > 0, "The contract balance is zero");
+
 
         uint256 totalDonation = address(this).balance;
 
@@ -178,6 +193,7 @@ contract CauseContract {
                 uint256 proportion = donorTotals[sender] * 100 / totalDonation;
                 uint256 donation = totalDonation * proportion / 100;
                 if (donation > 0) {
+                    outgoing.push(Transaction(sender, donation, block.timestamp, block.number));
                     (bool success, ) = sender.call{value: donation}("");
                     require(success, "Failed to distribute funds to donor");
                 }
@@ -186,6 +202,9 @@ contract CauseContract {
                 addressDonated[sender] = true;
             }
         }
+
+        fundsDistributedFlag = 2;
+
     }
 
     receive() external payable {
@@ -202,4 +221,6 @@ contract CauseContract {
         _;
     }
 
+
 }
+
