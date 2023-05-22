@@ -21,8 +21,10 @@ contract CauseContract {
     // cause withdrawal total tracker
     uint256 causeWithdrawalTotal;
 
+
     // Flag for whether funds have been redistributed -> 1= False, 2=True
     uint256 fundsDistributedFlag = 1;
+
 
     // Transaction fee of 50bps (by default)
     uint256 constant BASIS_POINTS = 50;
@@ -119,17 +121,22 @@ contract CauseContract {
         // Calculate netDonation and use it later for gas optimization
         uint256 netDonation = msg.value - transactionFee;
 
+
+
+
         // update donor proportion
         donorTotals[msg.sender] += msg.value;
 
         // update causeTotal
         causeTotal += netDonation;
 
+
         incoming.push(Transaction(msg.sender, netDonation, block.timestamp, block.number)); 
 
         // Transfer the transactionFee as last stage of function execution
         (bool success, ) = blockChange.call{value: transactionFee}("");
         require(success, "Transfer failed.");         
+
     }
 
     function withdraw(uint256 _amount) public payable onlyAdmin {
@@ -137,10 +144,12 @@ contract CauseContract {
        
         causeWithdrawalTotal += _amount;
 
+
         outgoing.push(Transaction(msg.sender, _amount, block.timestamp, block.number));
 
         (bool success, ) = admin.call{value: _amount}("");
         require(success, "Withdrawal failed");
+
     }
 
     function authenticateAdmin() public view onlyAdmin returns (bool) {
@@ -212,4 +221,6 @@ contract CauseContract {
         _;
     }
 
+
 }
+
