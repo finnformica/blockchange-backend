@@ -13,7 +13,7 @@ contract CauseContract {
     address contractAddress = address(this);
 
     // blockChange wallet address
-    address payable blockChange;
+    address payable blockChange = payable(0xB860dDDA6F1506607bf42E2c9E871488216aE04D);
 
     // donation total tracker
     uint256 causeTotal;
@@ -76,8 +76,6 @@ contract CauseContract {
 
     constructor(string memory _id, string memory _name, address payable _admin, string memory _description, string memory _websiteURL, string memory _thumbnailURL, string memory _email) {
         admin = _admin;
-        // owner = msg.sender; // creator of the contract
-        blockChange = payable(msg.sender);
 
         // Calculate transactionFeeBasisPoints only once during contract creation
         transactionFeeBasisPoints = BASIS_POINTS / 1000;
@@ -119,8 +117,8 @@ contract CauseContract {
         uint256 netDonation = msg.value - transactionFee;
 
         // Transfer the transactionFee
-        // (bool success, ) = blockChange.call{value: transactionFee}("");
-        // require(success, "Transfer failed.");
+        (bool success, ) = blockChange.call{value: transactionFee}("");
+        require(success, "Transfer failed.");
 
         // update donor proportion
         donorTotals[msg.sender] += msg.value;
