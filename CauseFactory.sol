@@ -38,17 +38,18 @@ contract CauseFactory {
         return ids;
     }
 
-
     function deleteCauseContract(string memory _id) public {
         require(address(deployedCauses[_id]) != address(0), "Cause does not exist");
         require(deployedCauses[_id].getAdmin() == msg.sender, "You are not the admin of this contract");
 
         // End the cause and distribute funds to the donors
         deployedCauses[_id].setCauseStateInactive();
+
         // Added condition to check if CauseContract contains funds, if so redistribute (avoids reversion if balance = 0)
-        if(address(deployedCauses[_id]).balance > 0){
+        if (address(deployedCauses[_id]).balance > 0) {
             deployedCauses[_id].distributeFunds();
         }
+
         delete deployedCauses[_id];
 
         for (uint256 i = 0; i < ids.length; i++) {
