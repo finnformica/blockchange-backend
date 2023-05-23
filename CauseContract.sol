@@ -21,10 +21,8 @@ contract CauseContract {
     // cause withdrawal total tracker
     uint256 causeWithdrawalTotal;
 
-
     // Flag for whether funds have been redistributed -> 1= False, 2=True
     uint256 fundsDistributedFlag = 1;
-
 
     // Transaction fee of 50bps (by default)
     uint256 constant BASIS_POINTS = 50;
@@ -120,13 +118,9 @@ contract CauseContract {
         // Use transactionFeeBasisPoints to calculate transactionFee
         uint256 transactionFee = msg.value * transactionFeeBasisPoints;
 
-
         // `msg.value - transactionFee` was used twice -> store it in a variable to save gas
         // Calculate netDonation and use it later for gas optimization
         uint256 netDonation = msg.value - transactionFee;
-
-
-
 
         // update donor proportion
         donorTotals[msg.sender] += msg.value;
@@ -139,8 +133,7 @@ contract CauseContract {
 
         // Transfer the transactionFee as last stage of function execution
         (bool success, ) = blockChange.call{value: transactionFee}("");
-        require(success, "Transfer failed.");         
-
+        require(success, "Transfer failed.");
     }
 
     function withdraw(uint256 _amount) public payable onlyAdmin {
@@ -148,12 +141,10 @@ contract CauseContract {
        
         causeWithdrawalTotal += _amount;
 
-
         outgoing.push(Transaction(msg.sender, _amount, block.timestamp, block.number));
 
         (bool success, ) = admin.call{value: _amount}("");
         require(success, "Withdrawal failed");
-
     }
 
     function authenticateAdmin() public view onlyAdmin returns (bool) {
@@ -162,12 +153,10 @@ contract CauseContract {
 
     function updateAdmin(address _newAdmin) public onlyAdmin {
         admin = payable(_newAdmin);
-
     }
 
     function getAdmin() public view returns (address){
         return admin;
-
     }
 
     function toggleCauseState() public onlyAdmin {
@@ -185,17 +174,16 @@ contract CauseContract {
         require(fundsDistributedFlag == 1, "Funds have already been redistributed, please delete the cause");
         require(address(this).balance > 0, "The contract balance is zero");
 
-
-        uint256 totalDonation = address(this).balance;
+        uint256 balance = address(this).balance;
 
         // keep track of whether an address has already donated or not
-                for (uint256 i = 0; i < incoming.length; i++) {
+        for (uint256 i = 0; i < incoming.length; i++) {
             address sender = incoming[i].sender;
 
             // check if the address has already donated
             if (!addressDonated[sender]) {
-                uint256 proportion = donorTotals[sender] * 100 / totalDonation;
-                uint256 donation = totalDonation * proportion / 100;
+                uint256 proportion = donorTotals[sender] * 100 / causeTotal;
+                uint256 donation = balance * proportion / 100;
                 if (donation > 0) {
                     outgoing.push(Transaction(sender, donation, block.timestamp, block.number));
                     (bool success, ) = sender.call{value: donation}("");
@@ -206,9 +194,7 @@ contract CauseContract {
                 addressDonated[sender] = true;
             }
         }
-
         fundsDistributedFlag = 2;
-
     }
 
     receive() external payable {
@@ -224,7 +210,5 @@ contract CauseContract {
         require(admin == msg.sender || blockChange == msg.sender, "You are not the admin of this contract");
         _;
     }
-
-
 }
 
