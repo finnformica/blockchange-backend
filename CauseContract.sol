@@ -6,14 +6,11 @@ contract CauseContract {
     // admin address
     address payable admin;
 
-    // Contract owner address
-    // address public owner;
-
-    // Contract address
-    address contractAddress = address(this);
-
     // blockChange wallet address
     address payable blockChange = payable(0xB860dDDA6F1506607bf42E2c9E871488216aE04D);
+
+    // contract factory address
+    address contractFactory;
 
     // donation total tracker
     uint256 causeTotal;
@@ -26,6 +23,7 @@ contract CauseContract {
 
     // Transaction fee of 50bps (by default)
     uint256 constant BASIS_POINTS = 50;
+
     // Add transactionFeeBasisPoints variable for gas optimization
     uint256 transactionFeeBasisPoints;
 
@@ -80,6 +78,8 @@ contract CauseContract {
 
     constructor(string memory _id, string memory _name, address payable _admin, string memory _description, string memory _websiteURL, string memory _thumbnailURL, string memory _email) {
         admin = _admin;
+
+        contractFactory = msg.sender;
 
         // Calculate transactionFeeBasisPoints only once during contract creation
         transactionFeeBasisPoints = BASIS_POINTS / 1000;
@@ -207,7 +207,7 @@ contract CauseContract {
 
     // modifier to ensure only admin or contract factory is able to call function
     modifier onlyAdmin() {
-        require(admin == msg.sender || blockChange == msg.sender, "You are not the admin of this contract");
+        require(admin == msg.sender || contractFactory == msg.sender, "You are not the admin of this contract");
         _;
     }
 }
